@@ -1,0 +1,12 @@
+.venv/
+instance
+__pycache__
+.env
+.idea
+
+
+
+
+
+
+

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather App — Sign up</title>
+  <link rel="icon" href="{{ url_for('static', filename='assets/logo.png')}}">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
+  <!-- decorative -->
+  <svg class="pointer-events-none absolute -top-24 -left-24 opacity-10 w-96 h-96" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#EFF9FF"/><stop offset="1" stop-color="#DFF6FF"/></linearGradient></defs>
+    <circle cx="50" cy="50" r="40" fill="url(#g)"/><ellipse cx="140" cy="140" rx="50" ry="30" fill="url(#g)"/>
+  </svg>
+
+  <main class="w-full max-w-md px-6 py-12">
+    <section class="relative">
+      <div class="backdrop-blur-md bg-white/30 border border-white/30 rounded-2xl shadow-xl p-8 flex flex-col gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-sm">
+            <svg class="w-7 h-7 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M5 5l-1.5-1.5M20.5 20.5 19 19M19 5l1.5-1.5M4.5 19.5 6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="3" fill="currentColor" class="text-yellow-400"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-semibold text-sky-800">Create account</h1>
+            <p class="text-sm text-sky-700/80">Sign up to save locations and get personalized forecasts</p>
+          </div>
+        </div>
+
+        <form id="signupForm" class="flex flex-col gap-4" action="/signup" method="POST" novalidate>
+          <div>
+            <label class="text-sm text-sky-700/90 mb-1 block">Email</label>
+            <input id="email" name="email" type="email" required placeholder="Type your email"
+                   class="w-full rounded-lg px-4 py-3 bg-white/30 border border-white/40 text-sky-900 placeholder-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-300 transition" />
+            <p id="emailErr" class="mt-1 text-xs text-red-600 hidden"></p>
+          </div>
+
+          <div>
+            <label class="text-sm text-sky-700/90 mb-1 block">Username</label>
+            <input id="username" name="username" type="text" required placeholder="Type your username"
+                   class="w-full rounded-lg px-4 py-3 bg-white/30 border border-white/40 text-sky-900 placeholder-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-300 transition" />
+            <p id="usernameErr" class="mt-1 text-xs text-red-600 hidden"></p>
+          </div>
+
+          <div>
+            <label class="text-sm text-sky-700/90 mb-1 block">Password</label>
+            <input id="password" name="password" type="password" required placeholder="Create a password"
+                   class="w-full rounded-lg px-4 py-3 bg-white/30 border border-white/40 text-sky-900 placeholder-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-300 transition" />
+          </div>
+
+          <div>
+            <label class="text-sm text-sky-700/90 mb-1 block">Confirm password</label>
+            <input id="confirm_password" name="confirm_password" type="password" required placeholder="Confirm your password"
+                   class="w-full rounded-lg px-4 py-3 bg-white/30 border border-white/40 text-sky-900 placeholder-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-300 transition" />
+            <p id="pwdErr" class="mt-1 text-xs text-red-600 hidden"></p>
+          </div>
+
+          <p id="serverErr" class="text-center text-sm text-red-600 hidden"></p>
+
+          <button id="submitBtn" type="submit"
+                  class="mt-2 w-full rounded-lg py-3 bg-sky-600 hover:bg-sky-700 text-white font-medium shadow-sm transition">
+            Create account
+          </button>
+        </form>
+
+        <p class="text-center text-sm text-sky-700/80">Already have an account? <a href="/" class="text-sky-800 font-medium hover:underline">Sign in</a></p>
+      </div>
+
+      <p class="mt-4 text-center text-xs text-sky-700/60">By creating an account you agree to the terms and privacy policy.</p>
+    </section>
+  </main>
+
+
+</body>
+
+<script>
+
+// Making the JavaScript code right here
+  const form = document.getElementById("signupForm");
+  const password = document.getElementById("password");
+  const confirmPwd = document.getElementById("confirm_password");
+  const pwdErr = document.getElementById("pwdErr");
+  const emailErr = document.getElementById("emailErr");
+  const usernameErr = document.getElementById("usernameErr");
+  const serverErr = document.getElementById("serverErr");
+
+  function validatePassword() {
+    const pwd = password.value.trim();
+    let message = "";
+
+    if (pwd.length < 8) {
+      message = "Password must be at least 8 characters long.";
+    } else if (!/[A-Z]/.test(pwd)) {
+      message = "Password must contain at least one uppercase letter.";
+    } else if (!/[a-z]/.test(pwd)) {
+      message = "Password must contain at least one lowercase letter.";
+    } else if (!/[0-9]/.test(pwd)) {
+      message = "Password must include at least one number.";
+    }
+
+    if (message) {
+      pwdErr.textContent = message;
+      pwdErr.classList.remove("hidden");
+      return false;
+    }
+
+    pwdErr.classList.add("hidden");
+    return true;
+  }
+
+  function matchPasswords() {
+    if (password.value !== confirmPwd.value) {
+      pwdErr.textContent = "Passwords do not match.";
+      pwdErr.classList.remove("hidden");
+      return false;
+    }
+
+    pwdErr.classList.add("hidden");
+    return true;
+  }
+
+  // Live validation
+  password.addEventListener("input", validatePassword);
+  confirmPwd.addEventListener("input", matchPasswords);
+
+  // On submit
+  form.addEventListener("submit", function (e) {
+    emailErr.classList.add("hidden");
+    usernameErr.classList.add("hidden");
+    serverErr.classList.add("hidden");
+
+    const validPwd = validatePassword();
+    const match = matchPasswords();
+    if (!validPwd || !match) {
+      e.preventDefault();
+    }
+  });
+</script>
+</html>

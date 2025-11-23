@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" class="transition-colors duration-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App — Find the Temperature</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/logo.png') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+
+  <script>
+    // Enable Tailwind dark mode class strategy
+    tailwind.config = {
+      darkMode: "class",
+    };
+  </script>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-blue-100 
+             dark:from-gray-900 dark:via-gray-800 dark:to-gray-900
+             flex items-center justify-center relative overflow-hidden transition-colors duration-300">
+
+  <!-- Decorative shapes -->
+  <svg class="pointer-events-none absolute -top-24 -left-24 opacity-10 w-96 h-96
+              dark:opacity-20"
+       viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g2" x1="0" x2="1">
+        <stop offset="0" stop-color="#EFF9FF"/>
+        <stop offset="1" stop-color="#DFF6FF"/>
+      </linearGradient>
+    </defs>
+    <circle cx="50" cy="50" r="40" fill="url(#g2)" />
+    <ellipse cx="140" cy="140" rx="50" ry="30" fill="url(#g2)" />
+  </svg>
+
+  <main class="w-full max-w-2xl px-6 py-12 text-center">
+
+    <section class="relative">
+      <div class="backdrop-blur-md bg-white/30 dark:bg-white/10
+                  border border-white/30 dark:border-white/10
+                  rounded-2xl shadow-xl p-10 flex flex-col gap-8 transition">
+
+        <!-- Top Bar -->
+        <div class="flex items-center justify-between">
+          <h1 class="text-3xl font-bold text-sky-800 dark:text-sky-200">
+            Weather App
+          </h1>
+
+          <!-- Dark Mode Toggle -->
+          <button id="darkToggle"
+            class="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700
+                   dark:bg-gray-700 dark:hover:bg-gray-600
+                   text-white font-medium shadow transition">
+            🌙 Dark Mode
+          </button>
+        </div>
+
+        <!-- Icon + subtitle -->
+        <div class="flex items-center justify-center gap-4 mt-2">
+          <div class="w-14 h-14 flex items-center justify-center rounded-full 
+                      bg-white/40 dark:bg-white/20 backdrop-blur-sm shadow">
+            <svg class="w-8 h-8 text-yellow-400 dark:text-yellow-300" 
+                 viewBox="0 0 24 24" fill="none">
+              <path d="M12 4V2M12 22v-2M4 12H2M22 12h-2
+                       M5 5l-1.5-1.5M20.5 20.5 19 19
+                       M19 5l1.5-1.5M4.5 19.5 6 18"
+                    stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="3" fill="currentColor"/>
+            </svg>
+          </div>
+
+          <p class="text-sky-700/80 dark:text-sky-300 text-sm">
+            Check the temperature of any city in Fahrenheit
+          </p>
+        </div>
+
+        <!-- Search box -->
+        <form id="weatherForm" class="flex flex-col gap-4 mt-4" action="/weather-data" method="POST" onsubmit="event.preventDefault()">
+          <label class="flex flex-col text-left">
+            <span class="text-sm text-sky-700/90 dark:text-sky-300 mb-1">City name</span>
+            <input
+              id="cityInput"
+              type="text"
+              name="city"
+              placeholder="Type a city (e.g., New York)"
+              required
+              class="w-full rounded-lg px-4 py-3 bg-white/30 dark:bg-white/20 
+                     border border-white/40 dark:border-white/10
+                     text-sky-900 dark:text-white placeholder-sky-600 dark:placeholder-sky-300
+                     focus:outline-none focus:ring-2 focus:ring-sky-300 transition"
+            />
+          </label>
+
+          <button
+            type="submit"
+            class="w-full rounded-lg py-3 bg-sky-600 hover:bg-sky-700
+                   text-white font-medium shadow-sm transition">
+            Check Weather
+          </button>
+        </form>
+
+        <!-- Weather Result -->
+        <div id="weatherResult"
+             class="mt-6 p-6 text-xl text-sky-800 dark:text-sky-200 hidden
+                    bg-white/20 dark:bg-white/10 backdrop-blur-lg
+                    border border-white/30 dark:border-white/10
+                    rounded-xl transition">
+        </div>
+
+      </div>
+
+      <p class="mt-4 text-center text-xs text-sky-700/60 dark:text-sky-400">
+        Powered by your Weather API backend.
+      </p>
+    </section>
+
+  </main>
+
+<script>
+  /* -------------------------
+      DARK MODE TOGGLE LOGIC
+  --------------------------*/
+  const toggleBtn = document.getElementById("darkToggle");
+  const html = document.documentElement;
+
+  if (localStorage.getItem("theme") === "dark") {
+    html.classList.add("dark");
+    toggleBtn.textContent = "☀️ Light Mode";
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    html.classList.toggle("dark");
+
+    if (html.classList.contains("dark")) {
+      localStorage.setItem("theme", "dark");
+      toggleBtn.textContent = "☀️ Light Mode";
+    } else {
+      localStorage.setItem("theme", "light");
+      toggleBtn.textContent = "🌙 Dark Mode";
+    }
+  });
+
+  /* -------------------------
+      LIVE TEMPERATURE ANIMATION
+  --------------------------*/
+  function animateTemperature(targetTempF) {
+    const el = document.getElementById("weatherResult");
+    el.classList.remove("hidden");
+
+    let current = 0;
+    const increment = targetTempF / 40;
+
+    const counter = setInterval(() => {
+      current += increment;
+
+      if (current >= targetTempF) {
+        current = targetTempF;
+        clearInterval(counter);
+      }
+
+      el.innerHTML = `
+        <span class="text-4xl font-semibold">${current.toFixed(0)}°F</span>
+        <p class="text-sm opacity-70">Live temperature animation</p>
+      `;
+    }, 25);
+  }
+
+  /* -------------------------
+      WEATHER API AJAX LOGIC
+  --------------------------*/
+  document.getElementById("weatherForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const city = document.getElementById("cityInput").value.trim();
+    const resultBox = document.getElementById("weatherResult");
+
+    // Clear old results
+    resultBox.classList.add("hidden");
+    resultBox.textContent = "";
+
+    // ❌ Validation
+    if (city.length === 0) {
+      resultBox.classList.remove("hidden");
+      resultBox.textContent = "Please enter a city name.";
+      return;
+    }
+
+    // Build the form data for POST
+    const formData = new FormData();
+    formData.append("city", city);
+
+    try {
+      const res = await fetch("/weather-api", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // API returned error (like city not found)
+        resultBox.classList.remove("hidden");
+        resultBox.textContent = data.error || "Error fetching weather.";
+        return;
+      }
+
+      // Temperature from backend is °C
+      const tempC = data.temperature;
+      const tempF = (tempC * 9 / 5) + 32;
+
+      // Animated temperature
+      animateTemperature(tempF);
+
+    } catch (err) {
+      console.error(err);
+      resultBox.classList.remove("hidden");
+      resultBox.textContent = "Network error. Try again.";
+    }
+  });
+</script>
+
+</body>
+</html>
